@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creature Clash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1 class="brand">Creature Clash</h1>
+  <nav id="nav-actions" class="nav-actions"></nav>
+</header>
+
+<main class="page">
+
+  <section id="auth-section" class="panel auth-panel">
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="signin">Sign in</button>
+      <button type="button" class="tab-btn" data-tab="signup">Sign up</button>
+    </div>
+
+    <form id="signin-form" class="stacked-form">
+      <label for="signin-email">Email</label>
+      <input id="signin-email" type="email" required autocomplete="email">
+      <label for="signin-password">Password</label>
+      <input id="signin-password" type="password" required autocomplete="current-password">
+      <button type="submit" class="primary-btn">Sign in</button>
+      <p class="form-status" id="signin-status"></p>
+    </form>
+
+    <form id="signup-form" class="stacked-form" hidden>
+      <label for="signup-username">Username</label>
+      <input id="signup-username" type="text" required minlength="3" maxlength="24" autocomplete="username">
+      <label for="signup-email">Email</label>
+      <input id="signup-email" type="email" required autocomplete="email">
+      <label for="signup-password">Password</label>
+      <input id="signup-password" type="password" required minlength="6" autocomplete="new-password">
+      <button type="submit" class="primary-btn">Create account</button>
+      <p class="form-status" id="signup-status"></p>
+    </form>
+  </section>
+
+  <section id="welcome-section" class="panel" hidden>
+    <p class="welcome-line">Signed in as <strong id="welcome-username"></strong><span id="admin-badge" class="admin-badge" hidden>ADMIN</span></p>
+    <p class="dim-note">The battle game itself isn't built yet — this is the foundation (accounts + admin content tools).</p>
+    <div id="admin-links" class="admin-links" hidden>
+      <a href="admin.html" class="primary-btn">Open admin panel ↗</a>
+    </div>
+    <button type="button" id="signout-btn" class="ghost-btn">Sign out</button>
+  </section>
+
+</main>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

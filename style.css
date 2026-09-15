@@ -1,0 +1,276 @@
+:root {
+  --bg: #14151a;
+  --panel: #1d1f26;
+  --panel-alt: #23252e;
+  --border: #2f323d;
+  --text: #e8e8ef;
+  --text-dim: #9698a8;
+  --accent: #8a6cff;
+  --accent-dim: #6a4fd6;
+  --good: #33d17a;
+  --danger: #ff5470;
+
+  --font-display: 'Press Start 2P', monospace;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+a { color: var(--accent); }
+
+/* ---------------- Topbar ---------------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.brand a { color: var(--text); text-decoration: none; }
+
+.brand-sub {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 500;
+  margin-left: 0.4rem;
+}
+
+.nav-actions { display: flex; gap: 0.6rem; }
+
+/* ---------------- Layout ---------------- */
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.dim-note { color: var(--text-dim); font-size: 0.85rem; }
+
+/* ---------------- Panels & forms ---------------- */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.4rem 1.5rem;
+}
+
+.panel h2 {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  margin: 0 0 1rem;
+  color: var(--accent);
+  letter-spacing: 0.03em;
+}
+
+.auth-panel { max-width: 420px; margin: 2rem auto; }
+
+.stacked-form label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  margin: 0.8rem 0 0.3rem;
+}
+
+.stacked-form label:first-of-type { margin-top: 0; }
+
+.optional { font-weight: 400; color: #6b6e7d; }
+
+.stacked-form input[type="text"],
+.stacked-form input[type="email"],
+.stacked-form input[type="password"],
+.stacked-form input[type="number"],
+.stacked-form input[type="file"],
+.stacked-form select,
+.stacked-form textarea {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel-alt);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+.stacked-form input[type="number"] { font-family: var(--font-mono); }
+
+.stacked-form input:focus,
+.stacked-form select:focus,
+.stacked-form textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.stacked-form textarea { resize: vertical; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+.stat-grid label { margin-top: 0; }
+
+.effect-fields {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+}
+
+.sprite-preview {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-alt);
+}
+
+/* ---------------- Buttons ---------------- */
+
+.primary-btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 5px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.primary-btn:hover { background: var(--accent-dim); }
+
+.ghost-btn {
+  padding: 0.55rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.ghost-btn.small { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+.ghost-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+.form-status { font-size: 0.8rem; min-height: 1.1em; margin: 0.6rem 0 0; }
+.form-status.error { color: var(--danger); }
+.form-status.success { color: var(--good); }
+
+/* ---------------- Auth tabs ---------------- */
+
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.tab-btn {
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tab-btn.active { border-color: var(--accent); color: var(--accent); }
+
+/* ---------------- Welcome / landing ---------------- */
+
+.welcome-line { font-size: 1.05rem; }
+.admin-badge {
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  font-family: var(--font-display);
+  vertical-align: middle;
+}
+.admin-links { margin: 1rem 0; }
+
+/* ---------------- Admin grid & lists ---------------- */
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.list-panel { max-height: 75vh; overflow-y: auto; }
+
+.entity-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+
+.entity-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.entity-thumb {
+  width: 40px; height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border-radius: 4px;
+  background: #14151a;
+  flex-shrink: 0;
+}
+
+.entity-thumb.placeholder { border: 1px dashed var(--border); }
+
+.entity-info { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.entity-info strong { font-size: 0.9rem; }
+.entity-info .dim-note { font-size: 0.75rem; font-family: var(--font-mono); }
+
+@media (max-width: 800px) {
+  .admin-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}

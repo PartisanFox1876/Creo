@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Creature Clash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1 class="brand"><a href="index.html">Creature Clash</a> <span class="brand-sub">/ admin</span></h1>
+  <nav class="nav-actions">
+    <a href="index.html" class="ghost-btn">← Back to site</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <p id="gate-message" class="dim-note">Checking permissions…</p>
+
+  <div id="admin-content" hidden>
+
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="creatures">Creatures</button>
+      <button type="button" class="tab-btn" data-tab="items">Items</button>
+    </div>
+
+    <!-- ---------------- Creatures ---------------- -->
+    <section id="creatures-tab" class="admin-tab">
+      <div class="admin-grid">
+        <form id="species-form" class="panel stacked-form">
+          <h2 id="species-form-title">New creature</h2>
+          <input type="hidden" id="species-id">
+
+          <label for="species-name">Name</label>
+          <input id="species-name" type="text" required maxlength="40">
+
+          <label for="species-description">Description <span class="optional">(optional)</span></label>
+          <textarea id="species-description" rows="2" maxlength="500"></textarea>
+
+          <label for="species-sprite">Sprite</label>
+          <input id="species-sprite" type="file" accept="image/*">
+          <img id="species-sprite-preview" class="sprite-preview" hidden alt="Sprite preview">
+
+          <div class="stat-grid">
+            <div>
+              <label for="species-hp">HP</label>
+              <input id="species-hp" type="number" min="1" required value="50">
+            </div>
+            <div>
+              <label for="species-atk">Attack</label>
+              <input id="species-atk" type="number" min="1" required value="50">
+            </div>
+            <div>
+              <label for="species-def">Defense</label>
+              <input id="species-def" type="number" min="1" required value="50">
+            </div>
+            <div>
+              <label for="species-spd">Speed</label>
+              <input id="species-spd" type="number" min="1" required value="50">
+            </div>
+          </div>
+
+          <label for="species-capture-rate">Capture rate modifier <span class="optional">(1.0 = normal, higher = easier)</span></label>
+          <input id="species-capture-rate" type="number" min="0.1" step="0.1" required value="1.0">
+
+          <div class="dialog-actions">
+            <button type="button" id="species-form-cancel" class="ghost-btn" hidden>Cancel edit</button>
+            <button type="submit" class="primary-btn">Save creature</button>
+          </div>
+          <p id="species-form-status" class="form-status"></p>
+        </form>
+
+        <div class="panel list-panel">
+          <h2>Existing creatures</h2>
+          <ul id="species-list" class="entity-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- Items ---------------- -->
+    <section id="items-tab" class="admin-tab" hidden>
+      <div class="admin-grid">
+        <form id="item-form" class="panel stacked-form">
+          <h2 id="item-form-title">New item</h2>
+          <input type="hidden" id="item-id">
+
+          <label for="item-name">Name</label>
+          <input id="item-name" type="text" required maxlength="40">
+
+          <label for="item-description">Description <span class="optional">(optional)</span></label>
+          <textarea id="item-description" rows="2" maxlength="500"></textarea>
+
+          <label for="item-sprite">Sprite</label>
+          <input id="item-sprite" type="file" accept="image/*">
+          <img id="item-sprite-preview" class="sprite-preview" hidden alt="Sprite preview">
+
+          <label for="item-type">Type</label>
+          <select id="item-type" required>
+            <option value="capture">Capture item</option>
+            <option value="buff">Buff (mid-battle)</option>
+            <option value="debuff">Debuff (mid-battle)</option>
+          </select>
+
+          <div id="capture-fields" class="effect-fields">
+            <label for="item-capture-bonus">Capture bonus multiplier</label>
+            <input id="item-capture-bonus" type="number" min="0.1" step="0.1" value="1.5">
+          </div>
+
+          <div id="buff-fields" class="effect-fields" hidden>
+            <label for="item-stat">Stat affected</label>
+            <select id="item-stat">
+              <option value="atk">Attack</option>
+              <option value="def">Defense</option>
+              <option value="spd">Speed</option>
+            </select>
+            <label for="item-amount">Amount <span class="optional">(negative for debuffs)</span></label>
+            <input id="item-amount" type="number" step="1" value="10">
+            <label for="item-duration">Duration (turns)</label>
+            <input id="item-duration" type="number" min="1" step="1" value="3">
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" id="item-form-cancel" class="ghost-btn" hidden>Cancel edit</button>
+            <button type="submit" class="primary-btn">Save item</button>
+          </div>
+          <p id="item-form-status" class="form-status"></p>
+        </form>
+
+        <div class="panel list-panel">
+          <h2>Existing items</h2>
+          <ul id="item-list" class="entity-list"></ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script type="module" src="./admin.js"></script>
+</body>
+</html>
