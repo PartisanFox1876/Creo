@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pixel Fishing</title>
+<style>
+#login{position:fixed;inset:0;background:#0d1b2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-family:monospace;color:#fff;z-index:9}#login input,#login button{font:inherit;font-size:16px;padding:10px;width:240px;box-sizing:border-box;border:2px solid #fff;background:#264653;color:#fff;-webkit-user-select:text;user-select:text}#login div{display:flex}#login button{width:120px;cursor:pointer}#err{color:#ff8080;max-width:240px;text-align:center;font-size:13px;margin:0}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:#0d1b2a}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:#0d1b2a;overflow:hidden;touch-action:none;user-select:none}
+#g{width:100%;height:100%}canvas{image-rendering:pixelated;display:block}
+</style></head><body>
+<div id="g"></div>
+<div id="login"><h2>Pixel Fishing</h2><input id="u" placeholder="Username" autocapitalize="off" autocomplete="username"><input id="p" type="password" placeholder="Password" autocomplete="current-password"><div><button id="li">Log in</button><button id="su">Sign up</button></div><p id="err"></p></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
+<script>
+const W=360,H=640,C={sky:0x87ceeb,water:0x1e6fa8,white:0xffffff,acc:0xffd23f,red:0xe63946,grn:0x52b788,btn:0x264653};
+const SB_URL='YOUR-PROJECT-URL',SB_KEY='YOUR-ANON-KEY'; // Supabase > Project Settings > API
+
+class Game extends Phaser.Scene{
+ create(){
+  this.g=this.add.graphics();this.tx={};this.btns=[];
+  this.sel=null;this.mode='pond';this.hold=false;this.msg='';this.load();
+  this.input.on('pointerdown',p=>this.tap(p.x,p.y));
+  this.input.on('pointerup',()=>this.hold=false);
+ }
+ T(k,x,y,s,sz=16,col='#fff',o=.5){
+  let t=this.tx[k];if(!t)t=this.tx[k]=this.add.text(0,0,'',{fontFamily:'monospace',fontStyle:'bold'}).setDepth(5);
+  t.setText(s).setPosition(x,y).setFontSize(sz).setColor(col).setOrigin(o,.5).setVisible(true);
+ }
+ B(x,y,w,h,label,fn,on){
+  this.btns.push({x,y,w,h,fn});
+  this.g.fillStyle(on?C.acc:C.btn).fillRect(x,y,w,h).lineStyle(2,C.white).strokeRect(x,y,w,h);
+  this.T('b'+x+y,x+w/2,y+h/2,label,14,on?'#000':'#fff');
+ }
+ tap(x,y){
+  this.hold=true;
+  const b=this.btns.find(b=>x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h);
+  if(b)return b.fn();
+  if(this.mode==='m2')this.hit2();
+ }
+ update(t,dt){
+  const s=Math.min(dt,50)/1000,g=this.g;
+  g.clear();Object.values(this.tx).forEach(o=>o.setVisible(false));this.btns=[];
+  g.fillStyle(C.sky).fillRect(0,0,W,260).fillStyle(C.water).fillRect(0,260,W,H-260);
+  g.fillStyle(0x8d5a2b).fillRect(0,250,120,14);                       // dock
+  g.fillStyle(0xe76f51).fillRect(60,218,16,32).fillStyle(0xf1c27d).fillRect(62,206,12,12); // fisherman
+  g.lineStyle(3,0x5c3d1e).lineBetween(76,224,130,190);                // rod
+  this['m_'+this.mode](s);
+  this.T('money',W-8,14,'$'+(this.me?this.me.money:0),14,'#ffd23f',1);
+ }
+ // ---- server data
+ async load(){
+  const q=await Promise.all([sb.from('profiles').select('*').single(),sb.from('bait_inventory').select('bait_id,qty'),
+   sb.from('catches').select('id,size,state,value,fish_species(name)').order('id',{ascending:false}),sb.from('baits').select('*').order('price')]);
+  [this.me,this.inv,this.catches,this.shop]=q.map(r=>r.data);
+ }
+ async rpc(fn,a){const r=await sb.rpc(fn,a);if(r.error){this.msg=r.error.message;return null;}this.msg='';await this.load();return r.data||true;}
+ qty(id){const i=(this.inv||[]).find(x=>x.bait_id===id);return i?i.qty:0}
+ nav(){this.T('e',W/2,548,this.msg||'',12,'#ff8080');this.B(80,570,200,44,'BACK',()=>{this.msg='';this.mode='pond'});}
+ // ---- pond: pick bait and cast
+ m_pond(){
+  if(!this.me)return this.T('l',W/2,320,'Loading...');
+  if(this.sel!==null&&!this.qty(this.sel))this.sel=null;
+  this.T('t',W/2,90,'PIXEL FISHING',24);this.T('u',8,14,this.me.username,14,'#fff',0);
+  [{id:null,name:'No bait'},...this.shop.filter(b=>this.qty(b.id)>0)].forEach((b,i)=>
+   this.B(20,300+i*44,320,38,b.name+(b.id?' x'+this.qty(b.id):''),()=>this.sel=b.id,this.sel===b.id));
+  this.B(80,490,200,50,'CAST',()=>this.cast());
+  this.T('e',W/2,552,this.msg||'',12,'#ff8080');
+  this.B(20,570,100,40,'Shop',()=>this.mode='shop');
+  this.B(130,570,100,40,'Fish '+this.catches.length,()=>this.mode='inv');
+  this.B(240,570,100,40,'Rod',()=>this.mode='rod');
+ }
+ async cast(){
+  this.mode='casting';this.s1=0;this.s2=0;
+  const r=await this.rpc('start_cast',{p_bait:this.sel});
+  if(!r){this.mode='pond';return;}
+  this.cid=r.cast_id;this.diff=r.difficulty;this.wait=r.wait;this.mode='wait';
+ }
+ m_casting(){this.T('c',W/2,400,'Casting...');}
+ m_shop(){
+  this.T('t',W/2,60,'SHOP',22);
+  this.shop.forEach((b,i)=>this.B(20,100+i*50,320,42,b.name+' x'+this.qty(b.id)+'   $'+b.price,()=>this.rpc('buy_bait',{p_bait:b.id,p_qty:1})));
+  this.nav();
+ }
+ m_rod(){
+  this.T('t',W/2,60,'ROD',22);
+  [['bar','Control bar'],['luck','Luck'],['size','Fish size']].forEach(([k,n],i)=>{const lv=this.me['rod_'+k];
+   this.B(20,100+i*50,320,42,n+'  Lv '+lv+(lv<10?'   $'+100*(lv+1)*(lv+1):'  MAX'),()=>lv<10&&this.rpc('upgrade_rod',{p_stat:k}))});
+  this.nav();
+ }
+ m_inv(){
+  this.T('t',W/2,36,'FISH '+this.catches.length+'/100',20);
+  this.catches.slice(0,8).forEach((c,i)=>this.B(20,64+i*46,320,40,c.fish_species.name+' '+c.size+'cm '+c.state+' $'+c.value,()=>this.rpc('sell_catch',{p_id:c.id})));
+  this.T('h',W/2,440,'Tap a fish to sell it',12);
+  this.B(20,460,320,44,'SELL ALL',()=>this.rpc('sell_all'));
+  this.nav();
+ }
+ m_wait(s){
+  const g=this.g,y=330+Math.sin(this.time.now/300)*4;
+  g.fillStyle(C.red).fillRect(W/2-5,y,10,10).fillStyle(C.white).fillRect(W/2-5,y-10,10,10);
+  this.T('w',W/2,450,this.wait<.6?'BITE! Get ready':'Waiting for a bite...',16,this.wait<.6?'#ffd23f':'#fff');
+  this.wait-=s;
+  if(this.wait<=0){this.m1={pos:.5,v:0,tgt:.5,tg:.5,tt:0,prog:.35,ov:0,tot:0};this.mode='m1';}
+ }
+ // ---- minigame 1: hold to move right, release to drift left, keep bar on the white line
+ m_m1(s){
+  const m=this.m1,d=this.diff,g=this.g,X=30,Wd=300,bw=.2+.03*this.me.rod_bar;
+  m.tt-=s;if(m.tt<=0){m.tg=Math.random();m.tt=.5+Math.random()*1.2/d;}
+  m.tgt+=(m.tg-m.tgt)*Math.min(1,s*1.8*d);
+  m.v=(m.v+(this.hold?2.4:-2.4)*s)*(1-2*s);
+  m.pos=Math.max(bw/2,Math.min(1-bw/2,m.pos+m.v*s));
+  if(m.pos<=bw/2||m.pos>=1-bw/2)m.v=0;
+  const inn=Math.abs(m.tgt-m.pos)<bw/2;m.tot+=s;if(inn)m.ov+=s;
+  m.prog+=(inn?.25:-.18*d)*s;
+  g.fillStyle(0x111111).fillRect(X,370,Wd,36)
+   .fillStyle(0x00b4d8,.85).fillRect(X+(m.pos-bw/2)*Wd,370,bw*Wd,36)
+   .fillStyle(C.white).fillRect(X+m.tgt*Wd-5,364,10,48)
+   .fillStyle(0x111111).fillRect(X,430,Wd,14)
+   .fillStyle(C.grn).fillRect(X,430,Wd*Math.max(0,Math.min(1,m.prog)),14);
+  this.T('a',W/2,320,'Hold to move right, release to go left',12);
+  this.T('c',W/2,470,'Keep the blue bar on the white line',12);
+  if(m.prog>=1){this.s1=m.ov/m.tot;this.m2={a:0,sp:Math.random()*6.28,hits:0,miss:0,in:false,z:false};this.mode='m2';}
+  else if(m.prog<=0)this.end(false);
+ }
+ // ---- minigame 2: tap when the bar sweeps over the yellow spot
+ m_m2(s){
+  const m=this.m2,d=this.diff,g=this.g,cx=180,cy=400,R=90,tol=.3,P=Math.PI*2;
+  m.a=(m.a+(2+1.1*d)*s)%P;
+  const df=Math.atan2(Math.sin(m.a-m.sp),Math.cos(m.a-m.sp)),inz=Math.abs(df)<tol;
+  m.z=inz;
+  if(m.in&&!inz&&df>0){this.miss2();if(this.mode!=='m2')return;}
+  m.in=inz;
+  g.lineStyle(24,0x111111,.95).strokeCircle(cx,cy,R);
+  g.fillStyle(C.acc).fillCircle(cx+Math.cos(m.sp)*R,cy+Math.sin(m.sp)*R,13);
+  g.lineStyle(4,C.white).lineBetween(cx+Math.cos(m.a)*(R-14),cy+Math.sin(m.a)*(R-14),cx+Math.cos(m.a)*(R+14),cy+Math.sin(m.a)*(R+14));
+  g.fillStyle(0x1b1b1b).fillRect(cx-22,cy-22,44,44).lineStyle(2,C.white).strokeRect(cx-22,cy-22,44,44);
+  this.T('tp',cx,cy,'TAP',12);
+  this.T('a',W/2,300,'Tap as the bar crosses the spot',12);
+  this.T('c',W/2,520,'Hits '+m.hits+'/4     Misses '+m.miss+'/3',14);
+ }
+ hit2(){
+  const m=this.m2;
+  if(m.z){m.hits++;m.sp=Math.random()*6.28;m.in=false;m.z=false;
+   if(m.hits>=4){this.s2=m.hits/(m.hits+m.miss);this.end(true);}}
+  else this.miss2();
+ }
+ miss2(){const m=this.m2;m.miss++;m.in=false;if(m.miss>=3)this.end(false);}
+ // ---- result: the server decides state, size and value
+ async end(ok){
+  if(this.mode==='fin')return;this.mode='fin';
+  const r=await this.rpc('finish_cast',{p_cast:this.cid,p_s1:this.s1||0,p_s2:this.s2||0,p_ok:ok});
+  this.r=r||{ok:false};this.mode='res';
+ }
+ m_fin(){this.T('f',W/2,400,'Landing the fish...');}
+ m_res(){
+  const g=this.g,r=this.r;
+  if(r.ok){
+   g.fillStyle(Phaser.Display.Color.HexStringToColor(r.color).color).fillRect(130,310,80,36).fillRect(210,318,22,20).fillStyle(0).fillRect(140,320,6,6);
+   this.T('n',W/2,380,r.name,22);
+   this.T('r',W/2,410,r.rarity+'  |  '+r.size+' cm',14);
+   this.T('s',W/2,436,r.state+'  (score '+Math.round(r.score*100)+'%)',14,'#ffd23f');
+   this.T('v',W/2,462,'Worth $'+r.value+', added to your fish',14);
+  }else{
+   this.T('f',W/2,390,'The fish escaped!',22,'#e63946');
+   this.T('g',W/2,420,this.msg||'Bait lost',14);
+  }
+  this.B(80,510,200,54,'CONTINUE',()=>this.mode='pond');
+ }
+}
+const start=()=>new Phaser.Game({type:Phaser.AUTO,width:W,height:H,parent:'g',pixelArt:true,backgroundColor:'#0d1b2a',
+ scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},scene:Game});
+const $=i=>document.getElementById(i),sb=supabase.createClient(SB_URL,SB_KEY);
+let started=false;const go=()=>{$('login').style.display='none';if(!started){started=true;start();}};
+async function auth(up){ // username becomes a hidden fake email, players never see it
+ const u=$('u').value.trim(),e=u.toLowerCase()+'@fish.game',p=$('p').value;
+ const r=up?await sb.auth.signUp({email:e,password:p,options:{data:{username:u}}}):await sb.auth.signInWithPassword({email:e,password:p});
+ if(r.error)$('err').textContent=r.error.message;else go();
+}
+$('li').onclick=()=>auth(false);$('su').onclick=()=>auth(true);
+sb.auth.getSession().then(r=>r.data.session&&go());
+</script>
+</body></html>
